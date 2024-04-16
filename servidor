@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 import asyncio
 from grader.tcp import Servidor
+from grader.preprocess import return_ping
 import re
+
+MAP_WORDS = {b'PING': return_ping}
+
+SERVER_USERS = {}
 
 
 def validar_nome(nome):
@@ -17,14 +22,11 @@ def dados_recebidos(conexao, dados):
     if dados == b'':
         return sair(conexao)
 
-    if dados.startswith(b'PING'):
-        payload = dados.split(b' ', 1)[1]
-        msg = b':server PONG server :' + payload
-
-        return conexao.enviar(msg)
-
-    print(conexao, dados)
-    # return conexao.enviar(dados.encode('utf-8'))
+    messagens = dados.split(b'\r\n')
+    for message in messagens:
+        tokens = message.split(b' ')
+        mapped_word = tokens[0]
+        return MAP_WORDS[mapped_word](conexao, tokens)
 
 
 def conexao_aceita(conexao):
