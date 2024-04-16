@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
-from tcp import Servidor
+from grader.tcp import Servidor
 import re
 
 
@@ -16,7 +16,15 @@ def sair(conexao):
 def dados_recebidos(conexao, dados):
     if dados == b'':
         return sair(conexao)
+
+    if dados.startswith(b'PING'):
+        payload = dados.split(b' ', 1)[1]
+        msg = b':server PONG server :' + payload
+
+        return conexao.enviar(msg)
+
     print(conexao, dados)
+    # return conexao.enviar(dados.encode('utf-8'))
 
 
 def conexao_aceita(conexao):
