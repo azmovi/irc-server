@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import asyncio
-from grader.tcp import Servidor
-from grader.preprocess import return_ping
+from grader.tcp import Servidor, Conexao
+from trata_dados import enviar_dados_tratados
+from palavras_reservadas import retornar_mensagem_de_ping
 import re
 
-MAP_WORDS = {b'PING': return_ping}
-
-SERVER_USERS = {}
-
+WORDS = {b'PING': retornar_mensagem_de_ping}
+setattr(Conexao, 'residuos', b'') 
+total = 1
 
 def validar_nome(nome):
     return re.match(br'^[a-zA-Z][a-zA-Z0-9_-]*$', nome) is not None
@@ -22,12 +22,7 @@ def dados_recebidos(conexao, dados):
     if dados == b'':
         return sair(conexao)
 
-    messagens = dados.split(b'\r\n')
-    for message in messagens:
-        tokens = message.split(b' ')
-        mapped_word = tokens[0]
-        return MAP_WORDS[mapped_word](conexao, tokens)
-
+    enviar_dados_tratados(conexao, dados)
 
 def conexao_aceita(conexao):
     print(conexao, 'nova conexão')
