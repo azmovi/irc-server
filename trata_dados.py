@@ -1,5 +1,5 @@
 from grader.tcp import Conexao
-from palavras_reservadas import retornar_mensagem_de_ping
+from palavras_reservadas import retornar_mensagem_de_ping, verificar_nick
 
 
 # Criando o atributo novo chamado residuos
@@ -8,15 +8,15 @@ setattr(Conexao, 'residuos', b'')
 
 PALAVRAS_RESERVADAS = {
     b'PING': retornar_mensagem_de_ping,
+    b'NICK': verificar_nick,
 }
-
 
 def enviar_dados_tratados(conexao: Conexao, dados: bytes) -> None:
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            mensagem_tratada = tratar_mensagem(mensagem)
-            conexao.enviar(mensagem_tratada)
+            resposta = tratar_mensagem(mensagem)
+            conexao.enviar(resposta)
         except KeyError:
             conexao.enviar(b'')
 
@@ -41,11 +41,11 @@ def dividir_dados_em_mensagens_e_residuos(
 
 def tratar_mensagem(mensagem: bytes) -> bytes:
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ', 1)
-    mensagem_tratada = PALAVRAS_RESERVADAS[palavra_reservada](
+    resposta = PALAVRAS_RESERVADAS[palavra_reservada](
         conteudo_da_mensagem
     )
 
-    return mensagem_tratada
+    return resposta
 
 
 def tratar_residuo(conexao: Conexao, dados: bytes) -> list[bytes]:
