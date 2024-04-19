@@ -1,5 +1,6 @@
 from usuarios import validar_usuario
 
+
 def retornar_mensagem_de_ping(tokens: list[bytes], *_) -> bytes:
     """
     Função responsável pela reposta do servidor após chamada da palavra reservada PING.

@@ -5,6 +5,7 @@ from trata_dados import enviar_dados_tratados
 
 setattr(Servidor, 'users', set())
 
+
 def sair(conexao):
     print(conexao, 'conexão fechada')
     conexao.fechar()

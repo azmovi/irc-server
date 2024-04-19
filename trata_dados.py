@@ -1,5 +1,8 @@
 from grader.tcp import Conexao
-from palavras_reservadas import retornar_mensagem_de_ping, retornar_mensagem_de_nick
+from palavras_reservadas import (
+    retornar_mensagem_de_ping,
+    retornar_mensagem_de_nick,
+)
 
 
 # Criando o atributo novo chamado resíduos
@@ -19,7 +22,7 @@ def enviar_dados_tratados(
     servidor,
 ) -> None:
     """
-    Função responsável por receber as mensagens dos usuários e garantir que 
+    Função responsável por receber as mensagens dos usuários e garantir que
     o servidor responda de forma correta
     """
     lista_de_mensagens = tratar_residuo(conexao, dados)
@@ -64,11 +67,13 @@ def tratar_mensagem(mensagem: bytes, servidor, conexao) -> bytes:
     a essa palavra reservada.
 
     Return:
-        Retorna a resposta do servidor dado uma palavra reservada e o restante do 
+        Retorna a resposta do servidor dado uma palavra reservada e o restante do
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ', 1)
-    resposta = PALAVRAS_RESERVADAS[palavra_reservada](conteudo_da_mensagem, servidor, conexao)
+    resposta = PALAVRAS_RESERVADAS[palavra_reservada](
+        conteudo_da_mensagem, servidor, conexao
+    )
 
     return resposta
 

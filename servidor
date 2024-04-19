@@ -3,7 +3,7 @@ import asyncio
 from grader.tcp import Servidor
 from trata_dados import enviar_dados_tratados
 
-setattr(Servidor, 'users', {}) # {'nome_uppercase': conexao} 
+setattr(Servidor, 'users', {}) # {'nome_uppercase': obj_conexao} 
 
 def sair(conexao):
     print(conexao, 'conexão fechada')

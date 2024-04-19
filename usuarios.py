@@ -11,7 +11,7 @@ def validar_nome(nome: bytes) -> bool:
     return re.match(rb'^[a-zA-Z][a-zA-Z0-9_-]*$', nome) is not None
 
 
-def tratar_nome(tokens: list[bytes]) -> tuple[bytes, bool] :
+def tratar_nome(tokens: list[bytes]) -> bytes:
     """
     Função responsável por tratar o nick passado pelo usuario removendo o '\r\n',
     além de verificar se esse nick não esta presente no nosso "banco de dados"
@@ -42,22 +42,29 @@ def validar_usuario(tokens: list[bytes], servidor, conexao) -> bytes:
     if nome_valido:
         nome_uppercase = nome_novo.upper()
 
-        if not servidor.users.get(nome_novo.upper()):
-            if conexao.nome == b'*': # Cria ususario
+        if not servidor.users.get(nome_uppercase):
+            if conexao.nome == b'*':   # Cria ususario
                 resposta = b':server 001 %s :Welcome\r\n' % nome_novo
-                resposta += b':server 422 %s :MOTD File is missing\r\n' % nome_novo
-                # servidor.users.add(novo_nome.upper())
+                resposta += (
+                    b':server 422 %s :MOTD File is missing\r\n' % nome_novo
+                )
 
-            else: # Trocar de nome
+            else:   # Trocar de nome
                 resposta = b':%s NICK %s\r\n' % (conexao.nome, nome_novo)
 
-            servidor.users[nome_novo.upper()] = conexao
+            servidor.users[nome_uppercase] = conexao
             conexao.nome = nome_novo
 
-        else: # Nome ja existe
-            resposta = b':server 433 %s %s :Nickname is already in use\r\n' % (conexao.nome, nome_novo)
+        else:   # Nome ja existe
+            resposta = b':server 433 %s %s :Nickname is already in use\r\n' % (
+                conexao.nome,
+                nome_novo,
+            )
 
-    else: # Nome invalido
-        resposta = b':server 432 %s %s :Erroneous nickname\r\n' % (conexao.nome, nome_novo)
+    else:   # Nome invalido
+        resposta = b':server 432 %s %s :Erroneous nickname\r\n' % (
+            conexao.nome,
+            nome_novo,
+        )
 
     return resposta
