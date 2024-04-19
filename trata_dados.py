@@ -12,7 +12,11 @@ PALAVRAS_RESERVADAS = {
 }
 
 
-def enviar_dados_tratados(conexao: Conexao, dados: bytes) -> None:
+def enviar_dados_tratados(
+    conexao: Conexao,
+    dados: bytes,
+    servidor 
+) -> None:
     """
     Função responsável por receber as mensagens dos usuários e garantir que 
     o servidor responda de forma correta
@@ -20,7 +24,7 @@ def enviar_dados_tratados(conexao: Conexao, dados: bytes) -> None:
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta = tratar_mensagem(mensagem)
+            resposta = tratar_mensagem(mensagem, servidor)
             conexao.enviar(resposta)
         except KeyError:
             conexao.enviar(b'')
@@ -52,7 +56,7 @@ def dividir_dados_em_mensagens_e_residuos(
     return lista, residuo
 
 
-def tratar_mensagem(mensagem: bytes) -> bytes:
+def tratar_mensagem(mensagem: bytes, servidor) -> bytes:
     """
     Função responsável por dividir a mensagem do usuários em palavra reservada e
     o conteúdo propriamente dito da mensagem, além de executar a função respectiva
@@ -63,7 +67,7 @@ def tratar_mensagem(mensagem: bytes) -> bytes:
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ', 1)
-    resposta = PALAVRAS_RESERVADAS[palavra_reservada](conteudo_da_mensagem)
+    resposta = PALAVRAS_RESERVADAS[palavra_reservada](conteudo_da_mensagem, servidor)
 
     return resposta
 

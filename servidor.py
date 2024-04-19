@@ -10,11 +10,12 @@ def sair(conexao):
     conexao.fechar()
 
 
-def dados_recebidos(conexao, dados):
+def dados_recebidos(conexao, dados, servidor):
     if dados == b'':
         return sair(conexao)
 
-    enviar_dados_tratados(conexao, dados, SERVIDOR)
+    print(servidor.users)
+    enviar_dados_tratados(conexao, dados, servidor)
 
 
 def conexao_aceita(conexao):
@@ -22,6 +23,6 @@ def conexao_aceita(conexao):
     conexao.registrar_recebedor(dados_recebidos)
 
 
-SERVIDOR = Servidor(6667)
-SERVIDOR.registrar_monitor_de_conexoes_aceitas(conexao_aceita)
+servidor = Servidor(6667)
+servidor.registrar_monitor_de_conexoes_aceitas(conexao_aceita)
 asyncio.get_event_loop().run_forever()
