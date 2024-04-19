@@ -4,6 +4,7 @@ from palavras_reservadas import retornar_mensagem_de_ping, retornar_mensagem_de_
 
 # Criando o atributo novo chamado resíduos
 setattr(Conexao, 'residuos', b'')
+setattr(Conexao, 'nome', b'*')
 
 
 PALAVRAS_RESERVADAS = {
@@ -15,7 +16,7 @@ PALAVRAS_RESERVADAS = {
 def enviar_dados_tratados(
     conexao: Conexao,
     dados: bytes,
-    servidor 
+    servidor,
 ) -> None:
     """
     Função responsável por receber as mensagens dos usuários e garantir que 
@@ -24,7 +25,7 @@ def enviar_dados_tratados(
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta = tratar_mensagem(mensagem, servidor)
+            resposta = tratar_mensagem(mensagem, servidor, conexao)
             conexao.enviar(resposta)
         except KeyError:
             conexao.enviar(b'')
@@ -56,7 +57,7 @@ def dividir_dados_em_mensagens_e_residuos(
     return lista, residuo
 
 
-def tratar_mensagem(mensagem: bytes, servidor) -> bytes:
+def tratar_mensagem(mensagem: bytes, servidor, conexao) -> bytes:
     """
     Função responsável por dividir a mensagem do usuários em palavra reservada e
     o conteúdo propriamente dito da mensagem, além de executar a função respectiva
@@ -67,7 +68,7 @@ def tratar_mensagem(mensagem: bytes, servidor) -> bytes:
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ', 1)
-    resposta = PALAVRAS_RESERVADAS[palavra_reservada](conteudo_da_mensagem, servidor)
+    resposta = PALAVRAS_RESERVADAS[palavra_reservada](conteudo_da_mensagem, servidor, conexao)
 
     return resposta
 
