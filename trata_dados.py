@@ -1,4 +1,4 @@
-from grader.tcp import Conexao
+from grader.tcp import Conexao, Servidor
 from palavras_reservadas import (
     retornar_mensagem_de_ping,
     retornar_mensagem_de_nick,
@@ -30,8 +30,9 @@ def enviar_dados_tratados(
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta = tratar_mensagem(mensagem, servidor, conexao)
-            conexao.enviar(resposta)
+            resposta, nova_conexao, mensagem_valida = tratar_mensagem(conexao, mensagem, servidor)
+            if mensagem_valida:
+                nova_conexao.enviar(resposta)
         except KeyError:
             conexao.enviar(b'')
 
@@ -62,7 +63,7 @@ def dividir_dados_em_mensagens_e_residuos(
     return lista, residuo
 
 
-def tratar_mensagem(mensagem: bytes, servidor, conexao) -> bytes:
+def tratar_mensagem(conexao: Conexao, mensagem: bytes, servidor: Servidor) -> tuple[bytes, Conexao, bool]:
     """
     Função responsável por dividir a mensagem do usuários em palavra reservada e
     o conteúdo propriamente dito da mensagem, além de executar a função respectiva
@@ -73,11 +74,11 @@ def tratar_mensagem(mensagem: bytes, servidor, conexao) -> bytes:
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ')
-    resposta = PALAVRAS_RESERVADAS[palavra_reservada](
-        conteudo_da_mensagem, servidor, conexao
+    resposta, nova_conexao, mensagem_valida = PALAVRAS_RESERVADAS[palavra_reservada](
+        conexao, conteudo_da_mensagem, servidor 
     )
 
-    return resposta
+    return resposta, nova_conexao, mensagem_valida
 
 
 def tratar_residuo(conexao: Conexao, dados: bytes) -> list[bytes]:

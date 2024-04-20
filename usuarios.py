@@ -1,5 +1,7 @@
 import re
 
+from grader.tcp import Conexao, Servidor
+
 
 def validar_nome(nome: bytes) -> bool:
     """
@@ -27,7 +29,9 @@ def tratar_nome(tokens: list[bytes]) -> bytes:
     return nome_tratado
 
 
-def validar_usuario(tokens: list[bytes], servidor, conexao) -> bytes:
+def validar_usuario(
+    conexao: Conexao, tokens: list[bytes], servidor: Servidor
+) -> bytes:
     """
     Verifica qual resposta o servidor deve responder ao usuario baseado no nick
     que ele colocou.
@@ -40,31 +44,53 @@ def validar_usuario(tokens: list[bytes], servidor, conexao) -> bytes:
     nome_valido = validar_nome(nome_novo)
 
     if nome_valido:
-        nome_uppercase = nome_novo.upper()
+        if not existe_usuario(servidor, nome_novo):
 
-        if not servidor.users.get(nome_uppercase):
-            if conexao.nome == b'*':   # Cria ususario
-                resposta = b':server 001 %s :Welcome\r\n' % nome_novo
-                resposta += (
-                    b':server 422 %s :MOTD File is missing\r\n' % nome_novo
-                )
+            if conexao.nome == b'*':
+                resposta = criar_usuario(nome_novo)
 
-            else:   # Trocar de nome
-                resposta = b':%s NICK %s\r\n' % (conexao.nome, nome_novo)
+            else:
+                resposta = trocar_nome(conexao, nome_novo, servidor)
 
-            servidor.users[nome_uppercase] = conexao
+            servidor.users[nome_novo.upper()] = conexao
             conexao.nome = nome_novo
 
-        else:   # Nome ja existe
+        else:
             resposta = b':server 433 %s %s :Nickname is already in use\r\n' % (
                 conexao.nome,
                 nome_novo,
             )
-
-    else:   # Nome invalido
+    else:
         resposta = b':server 432 %s %s :Erroneous nickname\r\n' % (
             conexao.nome,
             nome_novo,
         )
 
     return resposta
+
+def existe_usuario(servidor: Servidor, nome_novo: bytes) -> bool:
+    """
+    Verificar se existe usuario presente na base de usuarios.
+    """
+    return servidor.users.get(nome_novo.upper())
+
+
+def criar_usuario(nome_novo: bytes) -> bytes:
+    """
+    Cria mensagem de usuario criado.
+    """
+    resposta = b':server 001 %s :Welcome\r\n' % nome_novo
+    resposta += (b':server 422 %s :MOTD File is missing\r\n' % nome_novo)
+
+    return resposta
+
+def trocar_nome(conexao, nome_novo, servidor) -> bytes:
+    """
+    Troca o nome do usuario e remove o antigo da base de usuarios.
+    """
+    resposta = b':%s NICK %s\r\n' % (conexao.nome, nome_novo)
+    del servidor.users[conexao.nome.upper()]
+
+    return resposta
+
+
