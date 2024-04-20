@@ -3,7 +3,7 @@ import asyncio
 from grader.tcp import Servidor
 from trata_dados import enviar_dados_tratados
 
-setattr(Servidor, 'users', set())
+setattr(Servidor, 'users', {})
 
 
 def sair(conexao):

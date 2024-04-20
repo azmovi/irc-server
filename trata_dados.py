@@ -2,6 +2,7 @@ from grader.tcp import Conexao
 from palavras_reservadas import (
     retornar_mensagem_de_ping,
     retornar_mensagem_de_nick,
+    retornar_mensagem_privada,
 )
 
 
@@ -13,6 +14,7 @@ setattr(Conexao, 'nome', b'*')
 PALAVRAS_RESERVADAS = {
     b'PING': retornar_mensagem_de_ping,
     b'NICK': retornar_mensagem_de_nick,
+    b'PRIVMSG': retornar_mensagem_privada,
 }
 
 
@@ -70,7 +72,7 @@ def tratar_mensagem(mensagem: bytes, servidor, conexao) -> bytes:
         Retorna a resposta do servidor dado uma palavra reservada e o restante do
         conteúdo do usuário.
     """
-    palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ', 1)
+    palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ')
     resposta = PALAVRAS_RESERVADAS[palavra_reservada](
         conteudo_da_mensagem, servidor, conexao
     )
