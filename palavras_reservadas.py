@@ -89,7 +89,7 @@ def retornar_entrou_no_canal(
     conexao: Conexao,
     tokens: list[bytes],
     servidor: Servidor
-) -> tuple[bytes, Conexao, bool]:
+) -> tuple[bytes, list[Conexao], bool]:
     """
     Retorna mensagem que o usuario entrou no canal espefico
     Example:
@@ -116,8 +116,28 @@ def retornar_entrou_no_canal(
 
 
 def retornar_saida_no_canal(
-    conexao: Conexao
+    conexao: Conexao,
     tokens: list[bytes],
     servidor: Servidor
-) -> tuple[bytes, Conexao, bool]:
+) -> tuple[bytes, list[Conexao], bool]:
+    """
+    Remove um usuario de um determinado canal
+    """
+
+    conexoes = []
+
+    canal = b''.join(tokens)[:-2]
+
+    nome_dos_users_no_canal = servidor.canais[canal.upper()]
+
+    for users in nome_dos_users_no_canal:
+        conexoes.append(servidor.users.get(conexao.nome.upper()))
+
+    servidor.canais[canal.upper()].remove(conexao.nome)
+    msg = b':%s PART %s\r\n' % (conexao.nome, canal)
+    mensagem_valida = True
+
+    return msg, conexoes, mensagem_valida
+
+
 
