@@ -11,7 +11,9 @@ def retornar_mensagem_de_ping(conexao: Conexao, tokens: list[bytes], _) -> tuple
     """
     msg = b':server PONG server :' + b''.join(tokens)
     mensagem_valida = True
-    return msg, conexao, mensagem_valida
+    conexoes = [conexao]
+
+    return msg, conexoes, mensagem_valida
 
 
 def retornar_mensagem_de_nick(
@@ -27,7 +29,9 @@ def retornar_mensagem_de_nick(
     """
     msg = validar_usuario(conexao, tokens, servidor)
     mensagem_valida = True
-    return msg, conexao, mensagem_valida
+    conexoes = [conexao]
+
+    return msg, conexoes, mensagem_valida
 
 
 def retornar_mensagem_privada(
@@ -37,23 +41,83 @@ def retornar_mensagem_privada(
 ) -> tuple[bytes, Conexao, bool]:
     """
     Example:
-        >>> PRIVMS destinatario :mensagem
+        >>> PRIVMSG destinatario :mensagem
         :remetente PRIVMSG destinatario :mensagem
 
+        >>> PRIVMSG #canal :mensagem
+        :remetente PRIVMSG #canal :mensagem
+
     """
-    destinatario = tokens[0]
+    meio = tokens[0]
     conteudo = b''.join(tokens[1:])
     mensagem_valida = False
     msg = b''
+    conexoes = []
 
-    conexao_destinatario = servidor.users.get(destinatario.upper())
 
-    if (conexao_destinatario):
-        msg = b':%s PRIVMSG %s %s' % (
-            conexao.nome, conexao_destinatario.nome, conteudo
-        )
-        mensagem_valida = True
+    if (b'%c' % meio[0]) == b'#': #canal
 
-    return msg, conexao_destinatario, mensagem_valida
+        canal = meio
+        users_no_canal = servidor.canais.get(canal.upper())
 
+        if users_no_canal:
+            msg = b':%s PRIVMSG %s %s' % (conexao.nome, canal, conteudo)
+
+            mensagem_valida = True
+            for user in users_no_canal:
+                if user != conexao.nome:
+                    conexoes.append(servidor.users[user.upper()])
+
+    else: #usuario
+        destinatario = meio
+        conexao_destinatario = servidor.users.get(destinatario.upper())
+
+        if conexao_destinatario:
+            msg = b':%s PRIVMSG %s %s' % (
+                conexao.nome, conexao_destinatario.nome, conteudo
+            )
+
+
+            mensagem_valida = True
+
+        conexoes = [conexao_destinatario]
+
+    return msg, conexoes, mensagem_valida
+
+
+def retornar_entrou_no_canal(
+    conexao: Conexao,
+    tokens: list[bytes],
+    servidor: Servidor
+) -> tuple[bytes, Conexao, bool]:
+    """
+    Retorna mensagem que o usuario entrou no canal espefico
+    Example:
+        >>>JOIN #canal1
+        nick JOIN #canal1
+    """
+    nome_canal = b''.join(tokens)[:-2]
+    nome_canal_upper = nome_canal.upper()
+
+    canal_existe = servidor.canais.get(nome_canal_upper)
+
+    if canal_existe:
+        servidor.canais[nome_canal_upper].append(conexao.nome)
+
+    else:
+        servidor.canais[nome_canal_upper] = [conexao.nome]
+
+    mensagem_valida = True
+    msg = b':%s JOIN :%s\r\n' % (conexao.nome, nome_canal)
+
+    conexoes = [conexao]
+
+    return msg, conexoes, mensagem_valida
+
+
+def retornar_saida_no_canal(
+    conexao: Conexao
+    tokens: list[bytes],
+    servidor: Servidor
+) -> tuple[bytes, Conexao, bool]:
 

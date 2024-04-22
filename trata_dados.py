@@ -3,18 +3,19 @@ from palavras_reservadas import (
     retornar_mensagem_de_ping,
     retornar_mensagem_de_nick,
     retornar_mensagem_privada,
+    retornar_entrou_no_canal,
+    retornar_saida_no_canal,
 )
 
 
 # Criando o atributo novo chamado resíduos
-setattr(Conexao, 'residuos', b'')
-setattr(Conexao, 'nome', b'*')
-
 
 PALAVRAS_RESERVADAS = {
     b'PING': retornar_mensagem_de_ping,
     b'NICK': retornar_mensagem_de_nick,
     b'PRIVMSG': retornar_mensagem_privada,
+    b'JOIN': retornar_entrou_no_canal,
+    b'PART': retornar_saida_no_canal,
 }
 
 
@@ -30,9 +31,10 @@ def enviar_dados_tratados(
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta, nova_conexao, mensagem_valida = tratar_mensagem(conexao, mensagem, servidor)
+            resposta, conexoes, mensagem_valida = tratar_mensagem(conexao, mensagem, servidor)
             if mensagem_valida:
-                nova_conexao.enviar(resposta)
+                for conexao in conexoes:
+                    conexao.enviar(resposta)
         except KeyError:
             conexao.enviar(b'')
 
@@ -63,7 +65,11 @@ def dividir_dados_em_mensagens_e_residuos(
     return lista, residuo
 
 
-def tratar_mensagem(conexao: Conexao, mensagem: bytes, servidor: Servidor) -> tuple[bytes, Conexao, bool]:
+def tratar_mensagem(
+    conexao: Conexao,
+    mensagem: bytes,
+    servidor: Servidor
+) -> tuple[bytes, list[Conexao], bool]:
     """
     Função responsável por dividir a mensagem do usuários em palavra reservada e
     o conteúdo propriamente dito da mensagem, além de executar a função respectiva
@@ -74,11 +80,11 @@ def tratar_mensagem(conexao: Conexao, mensagem: bytes, servidor: Servidor) -> tu
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ')
-    resposta, nova_conexao, mensagem_valida = PALAVRAS_RESERVADAS[palavra_reservada](
+    resposta, conexoes, mensagem_valida = PALAVRAS_RESERVADAS[palavra_reservada](
         conexao, conteudo_da_mensagem, servidor 
     )
 
-    return resposta, nova_conexao, mensagem_valida
+    return resposta, conexoes, mensagem_valida
 
 
 def tratar_residuo(conexao: Conexao, dados: bytes) -> list[bytes]:

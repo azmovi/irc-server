@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 import asyncio
-from grader.tcp import Servidor
+from grader.tcp import Conexao, Servidor
 from trata_dados import enviar_dados_tratados
 
+# Novos atributos do Servidor
 setattr(Servidor, 'users', {}) # {'nome_uppercase': obj_conexao} 
+setattr(Servidor, 'canais', {}) # {'nome_canal_uppercase': list[users]} 
+
+# Novos atributos da Conexao
+setattr(Conexao, 'residuos', b'')
+setattr(Conexao, 'nome', b'*')
+
 
 def sair(conexao):
     print(conexao, 'conexão fechada')
