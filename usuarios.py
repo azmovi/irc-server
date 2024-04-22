@@ -68,6 +68,7 @@ def validar_usuario(
 
     return resposta
 
+
 def existe_usuario(servidor: Servidor, nome_novo: bytes) -> bool:
     """
     Verificar se existe usuario presente na base de usuarios.
@@ -80,9 +81,10 @@ def criar_usuario(nome_novo: bytes) -> bytes:
     Cria mensagem de usuario criado.
     """
     resposta = b':server 001 %s :Welcome\r\n' % nome_novo
-    resposta += (b':server 422 %s :MOTD File is missing\r\n' % nome_novo)
+    resposta += b':server 422 %s :MOTD File is missing\r\n' % nome_novo
 
     return resposta
+
 
 def trocar_nome(conexao, nome_novo, servidor) -> bytes:
     """
@@ -92,5 +94,3 @@ def trocar_nome(conexao, nome_novo, servidor) -> bytes:
     del servidor.users[conexao.nome.upper()]
 
     return resposta
-
-

@@ -31,7 +31,9 @@ def enviar_dados_tratados(
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta, conexoes, mensagem_valida = tratar_mensagem(conexao, mensagem, servidor)
+            resposta, conexoes, mensagem_valida = tratar_mensagem(
+                conexao, mensagem, servidor
+            )
             if mensagem_valida:
                 for conexao in conexoes:
                     conexao.enviar(resposta)
@@ -66,9 +68,7 @@ def dividir_dados_em_mensagens_e_residuos(
 
 
 def tratar_mensagem(
-    conexao: Conexao,
-    mensagem: bytes,
-    servidor: Servidor
+    conexao: Conexao, mensagem: bytes, servidor: Servidor
 ) -> tuple[bytes, list[Conexao], bool]:
     """
     Função responsável por dividir a mensagem do usuários em palavra reservada e
@@ -80,9 +80,9 @@ def tratar_mensagem(
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ')
-    resposta, conexoes, mensagem_valida = PALAVRAS_RESERVADAS[palavra_reservada](
-        conexao, conteudo_da_mensagem, servidor 
-    )
+    resposta, conexoes, mensagem_valida = PALAVRAS_RESERVADAS[
+        palavra_reservada
+    ](conexao, conteudo_da_mensagem, servidor)
 
     return resposta, conexoes, mensagem_valida
 
