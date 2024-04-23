@@ -36,7 +36,8 @@ def enviar_dados_tratados(
             )
             if mensagem_valida:
                 for conexao in conexoes:
-                    conexao.enviar(resposta)
+                    if conexao != None:
+                        conexao.enviar(resposta)
                 if multipla_mensagem:
                     conexao.enviar(multipla_mensagem)
         except KeyError:

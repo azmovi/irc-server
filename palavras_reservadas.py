@@ -133,6 +133,7 @@ def retornar_saida_no_canal(
     """
     Remove um usuario de um determinado canal
     """
+    print("AQUIII")
 
     conexoes = []
     mensagem_valida = False
@@ -153,6 +154,9 @@ def retornar_saida_no_canal(
 
         msg = b':%s PART %s\r\n' % (conexao.nome, canal)
         mensagem_valida = True
+
+    print("AQUI")
+    print(canal, nome_dos_usuarios_em_um_canal)
 
     return msg, conexoes, mensagem_valida, multipla_mensagem
 
