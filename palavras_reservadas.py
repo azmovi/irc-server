@@ -14,8 +14,9 @@ def retornar_mensagem_de_ping(
     msg = b':server PONG server :' + b''.join(tokens)
     mensagem_valida = True
     conexoes = [conexao]
+    multipla_mensagem = False
 
-    return msg, conexoes, mensagem_valida
+    return msg, conexoes, mensagem_valida, multipla_mensagem
 
 
 def retornar_mensagem_de_nick(
@@ -31,9 +32,10 @@ def retornar_mensagem_de_nick(
     """
     msg = validar_usuario(conexao, tokens, servidor)
     mensagem_valida = True
+    multipla_mensagem = False
     conexoes = [conexao]
 
-    return msg, conexoes, mensagem_valida
+    return msg, conexoes, mensagem_valida, multipla_mensagem
 
 
 def retornar_mensagem_privada(
@@ -51,6 +53,7 @@ def retornar_mensagem_privada(
     meio = tokens[0]
     conteudo = b''.join(tokens[1:])
     mensagem_valida = False
+    multipla_mensagem = False
     msg = b''
     conexoes = []
 
@@ -82,7 +85,7 @@ def retornar_mensagem_privada(
 
         conexoes = [conexao_destinatario]
 
-    return msg, conexoes, mensagem_valida
+    return msg, conexoes, mensagem_valida, multipla_mensagem
 
 
 def retornar_entrou_no_canal(
@@ -109,9 +112,19 @@ def retornar_entrou_no_canal(
     mensagem_valida = True
     msg = b':%s JOIN :%s\r\n' % (conexao.nome, nome_canal)
 
-    conexoes = [conexao]
+    nome_dos_usuarios_em_um_canal = servidor.canais.get(nome_canal_upper)
 
-    return msg, conexoes, mensagem_valida
+    conexoes = [
+        servidor.users.get(nome_usuario.upper()) for nome_usuario in nome_dos_usuarios_em_um_canal
+    ]
+
+
+    string_dos_usuarios_ordenados = b' '.join(sorted(nome_dos_usuarios_em_um_canal))
+
+    multipla_mensagem = b':server 353 %s = %s :%s\r\n' % (conexao.nome, nome_canal, string_dos_usuarios_ordenados)
+    multipla_mensagem += b':server 366 %s %s :End of /NAMES list.\r\n' % (conexao.nome, nome_canal)
+
+    return msg, conexoes, mensagem_valida, multipla_mensagem
 
 
 def retornar_saida_no_canal(
@@ -124,6 +137,7 @@ def retornar_saida_no_canal(
     conexoes = []
     mensagem_valida = False
     canal = tokens[0]
+    multipla_mensagem = False
 
     if len(tokens) == 1:   # passou mais de um paramentro
         canal = canal[:-2]
@@ -140,5 +154,5 @@ def retornar_saida_no_canal(
         msg = b':%s PART %s\r\n' % (conexao.nome, canal)
         mensagem_valida = True
 
-    return msg, conexoes, mensagem_valida
+    return msg, conexoes, mensagem_valida, multipla_mensagem
 

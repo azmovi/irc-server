@@ -31,12 +31,14 @@ def enviar_dados_tratados(
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta, conexoes, mensagem_valida = tratar_mensagem(
+            resposta, conexoes, mensagem_valida, multipla_mensagem = tratar_mensagem(
                 conexao, mensagem, servidor
             )
             if mensagem_valida:
                 for conexao in conexoes:
                     conexao.enviar(resposta)
+                if multipla_mensagem:
+                    conexao.enviar(multipla_mensagem)
         except KeyError:
             conexao.enviar(b'')
 
@@ -80,11 +82,8 @@ def tratar_mensagem(
         conteúdo do usuário.
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ')
-    resposta, conexoes, mensagem_valida = PALAVRAS_RESERVADAS[
-        palavra_reservada
-    ](conexao, conteudo_da_mensagem, servidor)
 
-    return resposta, conexoes, mensagem_valida
+    return PALAVRAS_RESERVADAS[palavra_reservada](conexao, conteudo_da_mensagem, servidor)
 
 
 def tratar_residuo(conexao: Conexao, dados: bytes) -> list[bytes]:
