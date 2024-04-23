@@ -31,9 +31,12 @@ def enviar_dados_tratados(
     lista_de_mensagens = tratar_residuo(conexao, dados)
     for mensagem in lista_de_mensagens:
         try:
-            resposta, conexoes, mensagem_valida, multipla_mensagem = tratar_mensagem(
-                conexao, mensagem, servidor
-            )
+            (
+                resposta,
+                conexoes,
+                mensagem_valida,
+                multipla_mensagem,
+            ) = tratar_mensagem(conexao, mensagem, servidor)
             if mensagem_valida:
                 for conexao in conexoes:
                     if conexao != None:
@@ -72,7 +75,7 @@ def dividir_dados_em_mensagens_e_residuos(
 
 def tratar_mensagem(
     conexao: Conexao, mensagem: bytes, servidor: Servidor
-) -> tuple[bytes, list[Conexao], bool]:
+) -> tuple[bytes, list[Conexao], bool, bytes]:
     """
     Função responsável por dividir a mensagem do usuários em palavra reservada e
     o conteúdo propriamente dito da mensagem, além de executar a função respectiva
@@ -84,7 +87,9 @@ def tratar_mensagem(
     """
     palavra_reservada, *conteudo_da_mensagem = mensagem.split(b' ')
 
-    return PALAVRAS_RESERVADAS[palavra_reservada](conexao, conteudo_da_mensagem, servidor)
+    return PALAVRAS_RESERVADAS[palavra_reservada](
+        conexao, conteudo_da_mensagem, servidor
+    )
 
 
 def tratar_residuo(conexao: Conexao, dados: bytes) -> list[bytes]:
@@ -120,10 +125,11 @@ def avisar_usuarios_de_sua_saida(conexao: Conexao, servidor: Servidor):
         resposta = b':%s QUIT :Connection closed\r\n' % conexao.nome
 
         for canal in conexao.lista_de_canais_atuais:
-            lista_de_usuarios_no_canal = servidor.canais.get(canal.upper()) 
+            lista_de_usuarios_no_canal = servidor.canais.get(canal.upper())
 
             for usuarios in lista_de_usuarios_no_canal:
                 nome_dos_usuarios_conhecidos.add(usuarios)
+                remover_usuario_do_canal(conexao, canal, servidor)
 
         nome_dos_usuarios_conhecidos.discard(conexao.nome)
         del servidor.users[conexao.nome.upper()]
@@ -135,5 +141,12 @@ def avisar_usuarios_de_sua_saida(conexao: Conexao, servidor: Servidor):
                     conexao_do_usuario_conhecido.enviar(resposta)
     return
 
+
+def remover_usuario_do_canal(conexao: Conexao, canal: bytes, servidor: Servidor):
+    usuarios_do_canal = servidor.canais.get(canal.upper())
+    try:
+        usuarios_do_canal.remove(conexao.nome)
+    except ValueError:
+        return
 
 
