@@ -96,6 +96,7 @@ def retornar_entrou_no_canal(
     """
     nome_canal = b''.join(tokens)[:-2]
     nome_canal_upper = nome_canal.upper()
+    conexao.lista_de_canais_atuais.append(nome_canal)
 
     canal_existe = servidor.canais.get(nome_canal_upper)
 
@@ -134,8 +135,10 @@ def retornar_saida_no_canal(
             conexoes.append(servidor.users.get(nome_usuario.upper()))
 
         servidor.canais[canal.upper()].remove(conexao.nome)
+        conexao.lista_de_canais_atuais.remove(canal)
 
         msg = b':%s PART %s\r\n' % (conexao.nome, canal)
         mensagem_valida = True
 
     return msg, conexoes, mensagem_valida
+

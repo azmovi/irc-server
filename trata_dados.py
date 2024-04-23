@@ -23,7 +23,7 @@ def enviar_dados_tratados(
     conexao: Conexao,
     dados: bytes,
     servidor,
-) -> None:
+):
     """
     Função responsável por receber as mensagens dos usuários e garantir que
     o servidor responda de forma correta
@@ -106,3 +106,34 @@ def tratar_residuo(conexao: Conexao, dados: bytes) -> list[bytes]:
     conexao.residuos = residuos
 
     return lista_de_mensagens
+
+
+def avisar_usuarios_de_sua_saida(conexao: Conexao, servidor: Servidor):
+    """
+    Example:
+        >>> saiu_da_conexao()
+        :apelido QUIT :Connection closed
+    """
+
+    if conexao.nome != b'*':
+        nome_dos_usuarios_conhecidos = set()
+        resposta = b':%s QUIT :Connection closed\r\n' % conexao.nome
+
+        for canal in conexao.lista_de_canais_atuais:
+            lista_de_usuarios_no_canal = servidor.canais.get(canal.upper()) 
+
+            for usuarios in lista_de_usuarios_no_canal:
+                nome_dos_usuarios_conhecidos.add(usuarios)
+
+        nome_dos_usuarios_conhecidos.discard(conexao.nome)
+        del servidor.users[conexao.nome.upper()]
+
+        if len(nome_dos_usuarios_conhecidos) > 0:
+            for nome in nome_dos_usuarios_conhecidos:
+                conexao_do_usuario_conhecido = servidor.users.get(nome.upper())
+                if conexao_do_usuario_conhecido != None:
+                    conexao_do_usuario_conhecido.enviar(resposta)
+    return
+
+
+
